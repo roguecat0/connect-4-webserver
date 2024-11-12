@@ -1,0 +1,19 @@
+<div id="connect4">
+    <div class="board-container">
+        <div class="board" id="board">
+        {% for col in values %}
+          {% let ci = loop.index0 %}
+          {%for cel in col %}
+          <div class="cell" data-row="{{ ci }}" data-col="{{ loop.index0 }}"></div>
+          {% endfor %}
+        {% endfor %}
+        </div>
+        <!-- Scores row -->
+        <div class="score-row">
+        {% for score in scores %}
+            <div class="score" data-col="{{ loop.index0 }}">{{ score }}</div>
+        {% endfor %}
+        </div>
+    </div>
+    <p id="status">Player 1's turn (Red)</p>
+</div>

@@ -10,7 +10,6 @@ use tower_http::services::ServeDir;
 
 #[tokio::main]
 async fn main() {
-    // starter webapp setup
     let app = Router::new()
         .route("/", get(index))
         .nest_service("/public", ServeDir::new("public"));
@@ -23,12 +22,26 @@ async fn main() {
 }
 
 async fn index() -> impl IntoResponse {
-    HtmlTemplate(Index)
+    HtmlTemplate(Index {
+        game: Game {
+            values: [[0; 6]; 7],
+            scores: [-4; 7],
+        },
+    })
 }
 
 #[derive(Template)]
 #[template(path = "index.html")]
-struct Index;
+struct Index {
+    game: Game,
+}
+
+#[derive(Template)]
+#[template(path = "game.html")]
+struct Game {
+    values: [[u8; 6]; 7],
+    scores: [isize; 7],
+}
 
 // render templates
 struct HtmlTemplate<T>(T);

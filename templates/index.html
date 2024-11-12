@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Four</title>
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <a href="#home"><span class="material-icons">home</span> Home</a>
+        <a href="#profile"><span class="material-icons">person</span> Play a friend</a>
+        <a href="#settings"><span class="material-icons">settings</span> Settings</a>
+        <a href="#help"><span class="material-icons">help</span> Toggle Hints</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <h1> The Ultimate Connect 4 Solver</h1>
+        <h3>How long will you last?</h3>
+        <!-- Connect Four Game -->
+        {{ game|safe }}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        &copy; 2024 Connect4 website. All rights reserved.
+    </div>
+
+    <script src="/public/js/connect4.js"></script>
+</body>
+</html>
