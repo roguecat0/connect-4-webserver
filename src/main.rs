@@ -1,3 +1,5 @@
+use std::{collections::HashMap, ops::IndexMut};
+
 use askama::Template;
 use axum::{
     extract::{Path, Query},
@@ -43,18 +45,36 @@ async fn index() -> impl IntoResponse {
         game: GameHtml {
             values: [[""; 6]; 7],
             scores: [-4; 7],
+            moves: "".to_string(),
         },
     })
 }
 
-async fn game() -> impl IntoResponse {
+async fn game(
+    Path(moves): Path<String>,
+    Query(params): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
     let mut game = GameHtml {
         values: [[""; 6]; 7],
         scores: [-4; 7],
+        moves: format!("{}{}", &moves[1..], params.get("column").unwrap()),
     };
-    game.values[0][0] = "yellow";
-    game.values[1][0] = "red";
-    for mut col in &mut game.values {
+    let pick: usize = params.get("column").unwrap().parse().unwrap();
+
+    println!("moves: {}", game.moves);
+    for (ci, col) in game.values.iter_mut().enumerate() {
+        for (i, ii) in game
+            .moves
+            .chars()
+            .enumerate()
+            .flat_map(|(ii, c)| {
+                c.to_digit(10)
+                    .and_then(|d| (d as usize == ci).then_some(ii))
+            })
+            .enumerate()
+        {
+            col[i] = if ii % 2 != 0 { "yellow" } else { "red" };
+        }
         col.reverse();
     }
     HtmlTemplate(game)
@@ -72,6 +92,7 @@ struct Index {
 struct GameHtml {
     values: [[&'static str; 6]; 7],
     scores: [isize; 7],
+    moves: String,
 }
 
 // render templates

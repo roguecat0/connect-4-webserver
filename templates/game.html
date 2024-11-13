@@ -29,7 +29,7 @@
         {% for col in values %}
           {% let ci = loop.index0 %}
           <ul class="column" data-col="{{ ci }}"
-        hx-get="/game/{{ ci }}" hx-include="this" hx-target="#connect4" hx-swap="outerHTML">
+          hx-get="/game/0{{ moves }}" hx-include="this" hx-target="#connect4" hx-swap="outerHTML">
           <input type="hidden" name="column" value="{{ci}}">
           {%for cel in col %}
       <li class="cell {{ cel }}" data-row="{{ loop.index0 }}"></li>
