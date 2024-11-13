@@ -8,10 +8,27 @@ use axum::{
 };
 use tower_http::services::ServeDir;
 
+#[derive(Clone, Copy)]
+pub enum Cell {
+    Empty,
+    Red,
+    Yellow,
+}
+impl Cell {
+    pub fn into_html_class(&self) -> &'static str {
+        match self {
+            Cell::Empty => "",
+            Cell::Yellow => "yellow",
+            Cell::Red => "red",
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let app = Router::new()
         .route("/", get(index))
+        .route("/game/:moves", get(game))
         .nest_service("/public", ServeDir::new("public"));
     let ip = "0.0.0.0:8088";
 
@@ -23,23 +40,37 @@ async fn main() {
 
 async fn index() -> impl IntoResponse {
     HtmlTemplate(Index {
-        game: Game {
-            values: [[0; 6]; 7],
+        game: GameHtml {
+            values: [[""; 6]; 7],
             scores: [-4; 7],
         },
     })
 }
 
+async fn game() -> impl IntoResponse {
+    let mut game = GameHtml {
+        values: [[""; 6]; 7],
+        scores: [-4; 7],
+    };
+    game.values[0][0] = "yellow";
+    game.values[1][0] = "red";
+    for mut col in &mut game.values {
+        col.reverse();
+    }
+    HtmlTemplate(game)
+}
+struct Game;
+
 #[derive(Template)]
 #[template(path = "index.html")]
 struct Index {
-    game: Game,
+    game: GameHtml,
 }
 
 #[derive(Template)]
 #[template(path = "game.html")]
-struct Game {
-    values: [[u8; 6]; 7],
+struct GameHtml {
+    values: [[&'static str; 6]; 7],
     scores: [isize; 7],
 }
 

@@ -92,25 +92,35 @@ body {
 
 .board-container {
     display: flex;
+    gap: 5px; /* Add space between columns */
+    flex-direction: row; /* Ensures columns are laid out horizontally */
+    justify-content: center; /* Centers the board within the container */
+}
+
+.board-container .column {
+    display: flex;
     flex-direction: column;
-    align-items: center;
+    list-style: none;
+    margin: 0 5px;
+    transition: background-color 0.3s ease;
 }
 
-.board {
-    display: grid;
-    grid-template-columns: repeat(7, 70px);
-    gap: 5px;
-    margin-bottom: 10px;
+.board-container .column:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
+/* Styling for each cell in the game */
 .cell {
     width: 70px;
     height: 70px;
     background-color: #444;
     border-radius: 50%;
+    margin: 5px 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: background-color 0.3s ease;
 }
 
 .cell.red {
@@ -121,22 +131,16 @@ body {
     background-color: #fdd835;
 }
 
+/* Score Row styling */
 .score-row {
-    display: grid;
-    grid-template-columns: repeat(7, 70px);
-    gap: 5px;
+    display: flex;
     margin-top: 10px;
 }
 
 .score {
+    width: 70px;
     text-align: center;
     font-size: 1.1rem;
     color: #bb86fc;
-}
-
-#status {
-    font-size: 1.2rem;
-    color: #bb86fc;
-    margin-top: 15px;
 }
 
