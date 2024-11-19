@@ -13,9 +13,11 @@
     <div class="sidebar">
         <h2>Menu</h2>
         <a href="#home"><span class="material-icons">home</span> Home</a>
-        <a href="#profile"><span class="material-icons">person</span> Profile</a>
-        <a href="#settings"><span class="material-icons">settings</span> Settings</a>
-        <a href="#help"><span class="material-icons">help</span> Help</a>
+        <!-- <a hx-get="/yellow" hx-target="#connect4" hidden><span class="material-icons">settings</span> Start Yellow</a> -->
+        <a hx-get="/red" hx-target="#connect4" hx-swap="outerHTML">
+          <span class="material-icons">settings</span> Start Red</a>
+        <a hx-get="/toggle_show" hx-target="#connect4" hx-include="#show_scores, #game-moves" hx-swap="outerHTML">
+          <span class="material-icons">help</span> Toggle Hints</a>
         <a href="#logout"><span class="material-icons">logout</span> Logout</a>
     </div>
 

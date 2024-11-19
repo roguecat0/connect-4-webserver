@@ -11,28 +11,14 @@ use axum::{
 };
 use tower_http::services::ServeDir;
 
-#[derive(Clone, Copy)]
-pub enum Cell {
-    Empty,
-    Red,
-    Yellow,
-}
-
-impl Cell {
-    pub fn into_html_class(&self) -> &'static str {
-        match self {
-            Cell::Empty => "",
-            Cell::Yellow => "yellow",
-            Cell::Red => "red",
-        }
-    }
-}
-
 #[tokio::main]
 async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/game/:moves", get(game))
+        .route("/toggle_show", get(toggle_show))
+        .route("/yellow", get(start_yellow))
+        .route("/red", get(start_red))
         .nest_service("/public", ServeDir::new("public"));
     let ip = "0.0.0.0:8088";
 
@@ -92,13 +78,61 @@ impl GameStatus {
     }
 }
 
+async fn toggle_show(Query(params): Query<HashMap<String, String>>) -> impl IntoResponse {
+    println!("{:?}", params);
+    let moves = params.get("moves").unwrap();
+    let show_scores: bool = params
+        .get("show_scores")
+        .expect("show_scores to be there")
+        .parse()
+        .expect("string to have a boolean value");
+    let book = Arc::new(OpeningBook::load("7x6.book").unwrap());
+    let mut solver = Solver::with_opening_book(book);
+
+    // coninute evaluating
+    let position = Position::parse_safe(moves).unwrap();
+    let scores = solver.analyse(&position, false);
+    println!("scores you: {scores:?}");
+    let game = if let Some(best_move) = get_best_move(&scores) {
+        let status = GameStatus::new(best_move.1, moves.len().checked_sub(2).unwrap_or(0));
+        println!("you status: {:?}", status);
+        GameHtml::from(
+            status,
+            &moves,
+            transform_scores_array(&scores),
+            !show_scores,
+        )
+    } else {
+        GameHtml::from(
+            GameStatus::Drawing(0),
+            &moves,
+            default_string_array(),
+            !show_scores,
+        )
+    };
+    println!("");
+    HtmlTemplate(game)
+}
+async fn start_yellow() -> impl IntoResponse {
+    HtmlTemplate(GameHtml::new_second())
+}
+async fn start_red() -> impl IntoResponse {
+    HtmlTemplate(GameHtml::new())
+}
+
 async fn game(
     Path(moves): Path<String>,
     Query(params): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
     // check if game end (win, draw)
     let moves = &moves[1..];
+    println!("{:?}", params);
     let pick: usize = params.get("column").unwrap().parse().unwrap();
+    let show_scores: bool = params
+        .get("show_scores")
+        .expect("show_scores to be there")
+        .parse()
+        .expect("string to have a boolean value");
     let pos = Position::parse_safe(&moves).unwrap();
     if pos.is_winning_move(pick) {
         println!("you won!! {pick}");
@@ -106,6 +140,7 @@ async fn game(
             GameStatus::Winning(0),
             moves,
             default_string_array(),
+            show_scores,
         ));
     } else if moves.len() == 41 {
         println!("you drew!! {pick}");
@@ -113,6 +148,7 @@ async fn game(
             GameStatus::Drawing(0),
             moves,
             default_string_array(),
+            show_scores,
         ));
     }
 
@@ -138,7 +174,7 @@ async fn game(
             GameStatus::new(best_move.1, moves.len())
         {
             println!(
-                "you lost whlka!! {} {:?}",
+                "you lost or drew!! {} {:?}",
                 moves,
                 GameStatus::new(best_move.1, moves.len())
             );
@@ -146,6 +182,7 @@ async fn game(
                 GameStatus::new(best_move.1, moves.len()).reverse(),
                 &format!("{moves}{}", best_move.0),
                 default_string_array(),
+                show_scores,
             ));
         }
         best_move
@@ -155,6 +192,7 @@ async fn game(
             GameStatus::Drawing(0),
             &moves,
             default_string_array(),
+            show_scores,
         ));
     };
     // coninute evaluating
@@ -165,10 +203,15 @@ async fn game(
     let game = if let Some(best_move) = get_best_move(&scores) {
         let status = GameStatus::new(best_move.1, moves.len() - 2);
         println!("you status: {:?}", status);
-        GameHtml::from(status, &moves, default_string_array())
+        GameHtml::from(status, &moves, transform_scores_array(&scores), show_scores)
     } else {
         println!("bot drew!! {pick}");
-        GameHtml::from(GameStatus::Drawing(0), &moves, default_string_array())
+        GameHtml::from(
+            GameStatus::Drawing(0),
+            &moves,
+            default_string_array(),
+            show_scores,
+        )
     };
     println!("");
     HtmlTemplate(game)
@@ -191,15 +234,6 @@ fn get_board_css(moves: &str) -> [[&'static str; 6]; 7] {
     }
     values
 }
-fn get_status_message(best_move: (usize, isize), num_moves: usize) -> String {
-    let status = match best_move.1 {
-        0 => "can draw",
-        n if n > 0 => "can win",
-        _ => "will lose",
-    };
-    let moves_left = 21 - num_moves as isize / 2 - best_move.1.abs();
-    format!("You {status} in {moves_left} turn(s)")
-}
 fn get_best_move(scores: &[Option<isize>]) -> Option<(usize, isize)> {
     scores
         .into_iter()
@@ -220,7 +254,7 @@ fn default_string_array() -> [String; 7] {
     ]
 }
 
-fn transform_scores_array(scores: &[Option<isize>; 7]) -> [String; 7] {
+fn transform_scores_array(scores: &[Option<isize>]) -> [String; 7] {
     fn trans(score: &Option<isize>) -> String {
         score.map_or("None".to_string(), |d| d.to_string())
     }
@@ -244,7 +278,7 @@ struct GameHtml {
     scores: [String; 7],
     path: String,
     status_msg: String,
-    reset: bool,
+    show_scores: bool,
 }
 impl GameHtml {
     pub fn new() -> Self {
@@ -253,7 +287,7 @@ impl GameHtml {
             scores: default_string_array(),
             path: "/game/0".to_string(),
             status_msg: "Game Started".to_string(),
-            reset: false,
+            show_scores: false,
         }
     }
     pub fn new_second() -> Self {
@@ -264,17 +298,17 @@ impl GameHtml {
             scores: default_string_array(),
             path: "/game/03".to_string(),
             status_msg: "Game Started".to_string(),
-            reset: false,
+            show_scores: false,
         }
     }
 
-    pub fn from(status: GameStatus, moves: &str, scores: [String; 7]) -> Self {
+    pub fn from(status: GameStatus, moves: &str, scores: [String; 7], show_scores: bool) -> Self {
         Self {
             values: get_board_css(moves),
             scores,
             path: Self::generate_path(moves, &status),
             status_msg: status.to_msg(),
-            reset: status.is_reset(),
+            show_scores,
         }
     }
     fn generate_path(moves: &str, status: &GameStatus) -> String {
@@ -283,6 +317,12 @@ impl GameHtml {
         } else {
             format!("/game/0{}", moves)
         }
+    }
+    fn is_reset(&self) -> bool {
+        &self.path == "/game/0"
+    }
+    fn get_moves(&self) -> String {
+        (&self.path[7..]).to_string()
     }
 }
 
