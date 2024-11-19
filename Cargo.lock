@@ -181,9 +181,15 @@ version = "0.1.0"
 dependencies = [
  "askama",
  "axum",
+ "connect_4_ai",
  "tokio",
  "tower-http",
 ]
+
+[[package]]
+name = "connect_4_ai"
+version = "0.1.0"
+source = "git+https://github.com/roguecat0/connect-4-ai.git#6c6baf45f4d1b8e3f335c090d9306d0500bcb3d7"
 
 [[package]]
 name = "fnv"
