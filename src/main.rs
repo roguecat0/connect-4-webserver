@@ -19,7 +19,8 @@ async fn main() {
         .route("/toggle_show", get(toggle_show))
         .route("/yellow", get(start_yellow))
         .route("/red", get(start_red))
-        .nest_service("/public", ServeDir::new("public"));
+        .nest_service("/public", ServeDir::new("public"))
+        .nest_service("/node_modules", ServeDir::new("node_modules"));
     let ip = "0.0.0.0:8088";
 
     let listener = tokio::net::TcpListener::bind(ip).await.unwrap();

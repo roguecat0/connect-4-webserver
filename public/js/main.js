@@ -8,3 +8,6 @@ run();
 function add(a, b) {
     return a + b;
 }
+$(function () {
+    console.log("has jquery");
+});
