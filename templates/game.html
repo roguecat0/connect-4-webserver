@@ -9,24 +9,25 @@
     name="moves"
     value="{{ Self::get_moves(self) }}"
   />
+  <input
+    id="show_scores"
+    type="hidden"
+    name="show_scores"
+    value="{{show_scores}}"
+  />
   <div class="board-container">
     <!-- Each column as a <ul> with <li> cells -->
+    <input type="hidden" id="test" name="welp" value="index" />
     {% for col in values %} {% let ci = loop.index0 %}
     <ul
       class="column"
       data-col="{{ ci }}"
       hx-get="{{ path }}"
-      hx-include="this"
+      hx-include="ul[data-col='{{ ci }}'] > [name='column'], [name='show_scores']"
       hx-target="#connect4"
       hx-swap="outerHTML"
     >
       <input type="hidden" name="column" value="{{ci}}" />
-      <input
-        id="show_scores"
-        type="hidden"
-        name="show_scores"
-        value="{{show_scores}}"
-      />
       {%for cel in col %}
       <li class="cell {{ cel }}" data-row="{{ loop.index0 }}"></li>
       {% endfor %} {% if !Self::is_reset(self) && show_scores %}
