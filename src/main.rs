@@ -3,13 +3,12 @@ use std::{collections::HashMap, sync::Arc, usize};
 
 use askama::Template;
 use axum::{
-    extract::{Form, Json, Path, Query},
+    extract::{Form, Path, Query},
     http::StatusCode,
     response::{Html, IntoResponse, Response},
     routing::{get, post},
     Router,
 };
-use serde_json::Value;
 use tower_http::services::ServeDir;
 
 #[tokio::main]

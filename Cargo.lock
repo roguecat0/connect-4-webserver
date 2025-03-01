@@ -182,7 +182,6 @@ dependencies = [
  "askama",
  "axum",
  "connect_4_ai",
- "serde_json",
  "tokio",
  "tower-http",
 ]
