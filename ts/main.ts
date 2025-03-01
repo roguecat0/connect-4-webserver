@@ -1,3 +1,5 @@
+import { initHome } from "./pages/home";
+
 export function run() {
   let a: number = 10;
   let b: number = 32;
@@ -10,5 +12,6 @@ function add(a: number, b: number): number {
   return a + b;
 }
 $(function () {
-  console.log("has jquery");
+  console.log("init function");
+  initHome();
 });
