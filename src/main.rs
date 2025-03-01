@@ -3,20 +3,22 @@ use std::{collections::HashMap, sync::Arc, usize};
 
 use askama::Template;
 use axum::{
-    extract::{Path, Query},
+    extract::{Form, Json, Path, Query},
     http::StatusCode,
     response::{Html, IntoResponse, Response},
-    routing::get,
+    routing::{get, post},
     Router,
 };
+use serde_json::Value;
 use tower_http::services::ServeDir;
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
         .route("/", get(index))
-        .route("/game/:moves", get(game))
-        .route("/toggle_show", get(toggle_show))
+        .route("/game/:moves", post(game))
+        .route("/toggle_show", get(toggle_show_get))
+        .route("/toggle_show", post(toggle_show_post))
         .route("/yellow", get(start_yellow))
         .route("/red", get(start_red))
         .nest_service("/public", ServeDir::new("public"))
@@ -79,7 +81,7 @@ impl GameStatus {
     }
 }
 
-async fn toggle_show(Query(params): Query<HashMap<String, String>>) -> impl IntoResponse {
+async fn toggle_show_get(Query(params): Query<HashMap<String, String>>) -> impl IntoResponse {
     println!("{:?}", params);
     let moves = params.get("moves").unwrap();
     let show_scores: bool = params
@@ -87,6 +89,20 @@ async fn toggle_show(Query(params): Query<HashMap<String, String>>) -> impl Into
         .expect("show_scores to be there")
         .parse()
         .expect("string to have a boolean value");
+    toggle_show(moves, show_scores)
+}
+async fn toggle_show_post(Form(payload): Form<HashMap<String, String>>) -> impl IntoResponse {
+    println!("payload: {:?}", payload);
+    let moves = payload.get("moves").unwrap();
+    let show_scores: bool = payload
+        .get("show_scores")
+        .expect("show_scores to be there")
+        .parse()
+        .expect("string to have a boolean value");
+    toggle_show(moves, show_scores)
+}
+
+fn toggle_show(moves: &str, show_scores: bool) -> impl IntoResponse {
     let book = Arc::new(OpeningBook::load("7x6.book").unwrap());
     let mut solver = Solver::with_opening_book(book);
 
@@ -123,7 +139,7 @@ async fn start_red() -> impl IntoResponse {
 
 async fn game(
     Path(moves): Path<String>,
-    Query(params): Query<HashMap<String, String>>,
+    Form(params): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
     // check if game end (win, draw)
     let moves = &moves[1..];

@@ -19,14 +19,7 @@
     <!-- Each column as a <ul> with <li> cells -->
     <input type="hidden" id="test" name="welp" value="index" />
     {% for col in values %} {% let ci = loop.index0 %}
-    <ul
-      class="column"
-      data-col="{{ ci }}"
-      hx-get="{{ path }}"
-      hx-include="ul[data-col='{{ ci }}'] > [name='column'], [name='show_scores']"
-      hx-target="#connect4"
-      hx-swap="outerHTML"
-    >
+    <ul class="column" data-col="{{ ci }}" data-path="{{ path }}">
       <input type="hidden" name="column" value="{{ci}}" />
       {%for cel in col %}
       <li class="cell {{ cel }}" data-row="{{ loop.index0 }}"></li>

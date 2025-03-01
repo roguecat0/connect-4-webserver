@@ -25,12 +25,7 @@
       <a hx-get="/red" hx-target="#connect4" hx-swap="outerHTML">
         <span class="material-icons">settings</span> Start Red</a
       >
-      <a
-        hx-get="/toggle_show"
-        hx-target="#connect4"
-        hx-include="#show_scores, #game-moves"
-        hx-swap="outerHTML"
-      >
+      <a id="toggle_show">
         <span class="material-icons">help</span> Toggle Hints</a
       >
       <a href="#logout"><span class="material-icons">logout</span> Logout</a>
